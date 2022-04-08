@@ -4,13 +4,13 @@ contract Will
 {
     address owner;
     uint fortune;
-    bool deceased;
+    bool isDeceased;
 
     constructor() payable public
     {
         owner = msg.sender;
         fortune = msg.value;
-        deceased = false;
+        isDeceased = false;
     }
 
     modifier onlyOwner
@@ -21,7 +21,7 @@ contract Will
 
     modifier mustBeDeceased
     {
-        require(deceased == true);
+        require(isDeceased == true);
         _;
     }
 
@@ -34,5 +34,20 @@ contract Will
         // to add wallets to familyWallets
         familyWallets.push(wallet);
         inheritance[wallet] = amount;
+    }
+
+    function payout() private mustBeDeceased
+    {
+        for(uint familyWalletIndex = 0; familyWalletIndex < familyWallets.length; familyWalletIndex++)
+        {
+            address payable familyWallet = familyWallets[familyWalletIndex];
+            familyWallet.transfer(inheritance[familyWallet]);
+        }
+    }
+
+    function deceased() public onlyOwner
+    {
+        isDeceased = true;
+        payout();
     }
 }
